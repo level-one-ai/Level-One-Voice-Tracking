@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { db } from "@/lib/firebase";
+import { getDb } from "@/lib/firebase";
 import { RetellWebhookPayload, CallRecord } from "@/lib/types";
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
@@ -45,6 +45,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
   // Action 1: Save to Firestore
   try {
+    const db = getDb();
     await db.collection("calls").doc(call.call_id).set(callRecord);
     console.log(`[Firestore] Saved call record: ${call.call_id}`);
   } catch (err) {

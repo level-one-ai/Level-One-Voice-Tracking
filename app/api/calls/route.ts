@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { db } from "@/lib/firebase";
+import { getDb } from "@/lib/firebase";
 import { CallRecord } from "@/lib/types";
 
 export async function GET(_request: NextRequest): Promise<NextResponse> {

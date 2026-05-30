@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { db } from "@/lib/firebase";
+import { getDb } from "@/lib/firebase";
 
 interface UpdateStatusBody {
   call_id: string;
@@ -25,6 +25,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
   }
 
   try {
+    const db = getDb();
     await db.collection("calls").doc(call_id).update({ consultation_status });
     return NextResponse.json({ success: true }, { status: 200 });
   } catch (err) {
