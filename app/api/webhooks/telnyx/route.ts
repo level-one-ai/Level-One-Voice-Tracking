@@ -1,9 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import Telnyx from "telnyx";
 import retellClient from "@/lib/retell";
 import { TelnyxWebhookPayload } from "@/lib/types";
-
-const telnyx = new Telnyx(process.env.TELNYX_API_KEY!);
 
 function getLondonHour(): number {
   const now = new Date();
@@ -11,6 +8,23 @@ function getLondonHour(): number {
     now.toLocaleString("en-US", { timeZone: "Europe/London" })
   );
   return londonTime.getHours();
+}
+
+async function rejectCall(callControlId: string): Promise<void> {
+  const url = `https://api.telnyx.com/v2/calls/${callControlId}/actions/reject`;
+  const response = await fetch(url, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${process.env.TELNYX_API_KEY}`,
+    },
+    body: JSON.stringify({ cause: "USER_BUSY" }),
+  });
+
+  if (!response.ok) {
+    const text = await response.text();
+    throw new Error(`Telnyx reject failed: ${response.status} ${text}`);
+  }
 }
 
 async function triggerRetellCall(toNumber: string): Promise<void> {
@@ -42,7 +56,6 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
   const eventType = payload?.data?.event_type;
 
-  // Only handle call.initiated (inbound) events
   if (eventType !== "call.initiated") {
     return NextResponse.json({ received: true }, { status: 200 });
   }
@@ -56,28 +69,20 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     return NextResponse.json({ received: true }, { status: 200 });
   }
 
-  // Step 1: Immediately reject the inbound call
   try {
-    await telnyx.calls.actions.reject(callControlId, {
-      cause: "USER_BUSY",
-    });
+    await rejectCall(callControlId);
   } catch (err) {
     console.error("[Telnyx] Failed to reject call:", err);
-    // Still proceed — we don't want to block the outbound flow
   }
 
-  // Step 2: Determine London hour and apply delay logic
   const londonHour = getLondonHour();
   const isBefore5PM = londonHour < 17;
 
-  // Non-blocking: fire and forget the outbound call
   (async () => {
     try {
       if (isBefore5PM) {
-        // 60-second delay before calling back during business hours
         await new Promise((resolve) => setTimeout(resolve, 60_000));
       }
-      // After 17:00: call immediately (no delay)
       await triggerRetellCall(fromNumber);
       console.log(`[Retell] Outbound call triggered to ${fromNumber}`);
     } catch (err) {
