@@ -1,28 +1,64 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getRetellClient } from "@/lib/retell";
 
+// The retell-sdk CallListResponse type may lag behind the actual API response.
+// We cast via unknown to safely access the paginated items shape.
+interface RetellCallListResponse {
+  items?: RetellCallItem[];
+  has_more?: boolean;
+  pagination_key?: string;
+}
+
+interface RetellCallItem {
+  call_id?: string;
+  agent_id?: string;
+  agent_name?: string;
+  call_type?: string;
+  call_status?: string;
+  from_number?: string;
+  to_number?: string;
+  start_timestamp?: number;
+  end_timestamp?: number;
+  duration_ms?: number;
+  transcript?: string;
+  recording_url?: string;
+  disconnection_reason?: string;
+  retell_llm_dynamic_variables?: Record<string, string>;
+  call_analysis?: {
+    user_sentiment?: string;
+    call_successful?: boolean;
+    call_summary?: string;
+    agent_task_completion_rating?: string;
+  };
+}
+
 export async function GET(_request: NextRequest): Promise<NextResponse> {
   try {
     const client = getRetellClient();
-    const result = await client.call.list({
+
+    // Cast through unknown to handle SDK type lag vs actual API response shape
+    const rawResult = await client.call.list({
       sort_order: "descending",
       limit: 100,
     });
 
-    const calls = (result.items ?? []).map((call) => {
+    const result = rawResult as unknown as RetellCallListResponse;
+    const items: RetellCallItem[] = result.items ?? [];
+
+    const calls = items.map((call) => {
       const durationMs =
         call.end_timestamp && call.start_timestamp
           ? call.end_timestamp - call.start_timestamp
-          : 0;
-      const c = call as Record<string, unknown>;
+          : (call.duration_ms ?? 0);
+
       return {
-        call_id: call.call_id,
+        call_id: call.call_id ?? "",
         agent_id: call.agent_id ?? "",
-        agent_name: (c.agent_name as string) ?? "",
+        agent_name: call.agent_name ?? "",
         call_type: call.call_type ?? "",
         call_status: call.call_status ?? "",
-        from_number: (c.from_number as string) ?? "",
-        to_number: (c.to_number as string) ?? "",
+        from_number: call.from_number ?? "",
+        to_number: call.to_number ?? "",
         start_timestamp: call.start_timestamp ?? 0,
         end_timestamp: call.end_timestamp ?? 0,
         duration_seconds: Math.round(durationMs / 1000),
