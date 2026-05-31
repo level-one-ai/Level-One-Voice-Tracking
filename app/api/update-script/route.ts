@@ -1,7 +1,23 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getRetellClient } from "@/lib/retell";
+import { getDb } from "@/lib/firebase";
 
 interface UpdateScriptBody { new_script: string; }
+
+async function getActiveLlmId(): Promise<string> {
+  try {
+    const db = getDb();
+    const doc = await db.collection("settings").doc("active_agent").get();
+    if (doc.exists) {
+      const data = doc.data() as { llm_id?: string };
+      if (data?.llm_id) return data.llm_id;
+    }
+  } catch {
+    // Fall through
+  }
+  if (process.env.RETELL_LLM_ID) return process.env.RETELL_LLM_ID;
+  throw new Error("No LLM ID found. Create an agent from the dashboard or set RETELL_LLM_ID.");
+}
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
   const authHeader = request.headers.get("x-api-secret");
@@ -15,12 +31,13 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
   if (!body.new_script?.trim()) {
     return NextResponse.json({ error: "new_script is required" }, { status: 400 });
   }
-  if (!process.env.RETELL_LLM_ID) {
-    return NextResponse.json({ error: "RETELL_LLM_ID not set" }, { status: 500 });
-  }
+
   try {
+    const llmId = await getActiveLlmId();
     const client = getRetellClient();
-    const updated = await client.llm.update(process.env.RETELL_LLM_ID, { general_prompt: body.new_script.trim() });
+    const updated = await client.llm.update(llmId, {
+      general_prompt: body.new_script.trim(),
+    });
     return NextResponse.json({ success: true, llm_id: updated.llm_id }, { status: 200 });
   } catch (err) {
     console.error("[Retell] Failed to update LLM:", err);

@@ -2,6 +2,58 @@
 
 import { useState, useEffect } from "react";
 
+
+function ActiveAgentInfo() {
+  const [info, setInfo] = useState<{ agent_id: string; llm_id: string; agent_name: string; updated_at: string } | null>(null);
+
+  useEffect(() => {
+    fetch("/api/settings")
+      .then((r) => r.json())
+      .then((d) => setInfo(d.settings ?? null))
+      .catch(() => {});
+  }, []);
+
+  return (
+    <div className="mt-4 glass-card p-5 animate-slide-up stagger-2">
+      <h3 className="text-[12px] font-semibold text-gray-600 uppercase tracking-wider mb-3">Active Agent Configuration</h3>
+      <div className="grid grid-cols-2 gap-4 text-[13px]">
+        <div>
+          <span className="text-gray-400">Agent Name</span>
+          <div className="font-medium text-gray-700 mt-0.5 text-[13px]">
+            {info?.agent_name || <span className="text-gray-400 italic">No agent created yet</span>}
+          </div>
+        </div>
+        <div>
+          <span className="text-gray-400">Last Updated</span>
+          <div className="text-gray-700 mt-0.5 text-[12px]">
+            {info?.updated_at ? new Date(info.updated_at).toLocaleString("en-GB") : "—"}
+          </div>
+        </div>
+        <div>
+          <span className="text-gray-400">Agent ID</span>
+          <div className="font-mono text-gray-700 mt-0.5 text-[12px] truncate">
+            {info?.agent_id || <span className="text-gray-400 italic">Not set</span>}
+          </div>
+        </div>
+        <div>
+          <span className="text-gray-400">LLM ID</span>
+          <div className="font-mono text-gray-700 mt-0.5 text-[12px] truncate">
+            {info?.llm_id || <span className="text-gray-400 italic">Not set</span>}
+          </div>
+        </div>
+        <div>
+          <span className="text-gray-400">Retell Webhook</span>
+          <div className="font-mono text-gray-700 mt-0.5 text-[12px]">/api/webhooks/retell</div>
+        </div>
+        <div>
+          <span className="text-gray-400">Telnyx Webhook</span>
+          <div className="font-mono text-gray-700 mt-0.5 text-[12px]">/api/webhooks/telnyx</div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function ControlPage() {
   const [script, setScript] = useState("");
   const [originalScript, setOriginalScript] = useState("");
@@ -221,38 +273,8 @@ Always maintain a professional, friendly tone."
         </div>
       </div>
 
-      {/* Info card */}
-      <div className="mt-4 glass-card p-5 animate-slide-up stagger-2">
-        <h3 className="text-[12px] font-semibold text-gray-600 uppercase tracking-wider mb-3">
-          Configuration Details
-        </h3>
-        <div className="grid grid-cols-2 gap-4 text-[13px]">
-          <div>
-            <span className="text-gray-400">Retell LLM ID</span>
-            <div className="font-mono text-gray-700 mt-0.5 text-[12px]">
-              {process.env.NEXT_PUBLIC_RETELL_LLM_ID_DISPLAY ?? "Configured via env var"}
-            </div>
-          </div>
-          <div>
-            <span className="text-gray-400">Agent ID</span>
-            <div className="font-mono text-gray-700 mt-0.5 text-[12px]">
-              {process.env.NEXT_PUBLIC_RETELL_AGENT_ID_DISPLAY ?? "Configured via env var"}
-            </div>
-          </div>
-          <div>
-            <span className="text-gray-400">Webhook Endpoint</span>
-            <div className="font-mono text-gray-700 mt-0.5 text-[12px]">
-              /api/webhooks/retell
-            </div>
-          </div>
-          <div>
-            <span className="text-gray-400">Telnyx Webhook</span>
-            <div className="font-mono text-gray-700 mt-0.5 text-[12px]">
-              /api/webhooks/telnyx
-            </div>
-          </div>
-        </div>
-      </div>
+      {/* Active agent info */}
+      <ActiveAgentInfo />
     </div>
   );
 }

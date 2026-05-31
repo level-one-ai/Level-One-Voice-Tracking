@@ -195,13 +195,12 @@ export default function CreateAgentPage() {
             </div>
           </div>
 
-          <div className="flex items-start gap-3 p-4 rounded-xl bg-amber-50 border border-amber-200/80 mb-6 text-left">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#d97706" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="flex-shrink-0 mt-0.5">
-              <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
-              <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+          <div className="flex items-start gap-3 p-4 rounded-xl bg-emerald-50 border border-emerald-200/80 mb-6 text-left">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="flex-shrink-0 mt-0.5">
+              <polyline points="20 6 9 17 4 12"/>
             </svg>
-            <p className="text-[12px] text-amber-700">
-              <span className="font-semibold">Save these IDs.</span> Go to Vercel → your project → Settings → Environment Variables and update <code className="bg-amber-100 px-1 rounded">RETELL_AGENT_ID</code> and <code className="bg-amber-100 px-1 rounded">RETELL_LLM_ID</code>, then redeploy.
+            <p className="text-[12px] text-emerald-700">
+              <span className="font-semibold">IDs auto-saved.</span> These IDs have been automatically saved to your dashboard. The system will use this agent for all outbound calls and prompt editing — no Vercel env vars needed.
             </p>
           </div>
 
