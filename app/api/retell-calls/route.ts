@@ -4,8 +4,6 @@ import { getRetellClient } from "@/lib/retell";
 export async function GET(_request: NextRequest): Promise<NextResponse> {
   try {
     const client = getRetellClient();
-
-    // Fetch up to 100 most recent calls directly from Retell
     const result = await client.call.list({
       sort_order: "descending",
       limit: 100,
@@ -16,15 +14,15 @@ export async function GET(_request: NextRequest): Promise<NextResponse> {
         call.end_timestamp && call.start_timestamp
           ? call.end_timestamp - call.start_timestamp
           : 0;
-
+      const c = call as Record<string, unknown>;
       return {
         call_id: call.call_id,
         agent_id: call.agent_id ?? "",
-        agent_name: (call as Record<string, unknown>).agent_name ?? "",
+        agent_name: (c.agent_name as string) ?? "",
         call_type: call.call_type ?? "",
         call_status: call.call_status ?? "",
-        from_number: (call as Record<string, unknown>).from_number ?? "",
-        to_number: (call as Record<string, unknown>).to_number ?? "",
+        from_number: (c.from_number as string) ?? "",
+        to_number: (c.to_number as string) ?? "",
         start_timestamp: call.start_timestamp ?? 0,
         end_timestamp: call.end_timestamp ?? 0,
         duration_seconds: Math.round(durationMs / 1000),
