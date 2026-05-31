@@ -15,12 +15,21 @@ const navItems = [
     ),
   },
   {
+    href: "/dashboard/caller-history",
+    label: "Caller History",
+    icon: (
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.26 12 19.79 19.79 0 0 1 1.15 3.42 2 2 0 0 1 3.12 1h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.09 8.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 21 16z"/>
+      </svg>
+    ),
+  },
+  {
     href: "/dashboard/analytics",
     label: "Call Analytics",
     badge: "LIVE",
     icon: (
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.26 12 19.79 19.79 0 0 1 1.15 3.42 2 2 0 0 1 3.12 1h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.09 8.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 21 16z"/>
+        <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
       </svg>
     ),
   },
@@ -29,7 +38,9 @@ const navItems = [
     label: "Call Intelligence",
     icon: (
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
-        <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+        <polyline points="14 2 14 8 20 8"/>
+        <line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/>
       </svg>
     ),
   },
@@ -41,6 +52,17 @@ const navItems = [
         <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
         <circle cx="9" cy="7" r="4"/>
         <path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+      </svg>
+    ),
+  },
+  {
+    href: "/dashboard/agent-manager",
+    label: "Agent Manager",
+    icon: (
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M12 2a3 3 0 0 0-3 3v4a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/>
+        <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+        <line x1="12" y1="19" x2="12" y2="22"/>
       </svg>
     ),
   },
@@ -73,7 +95,6 @@ export default function Sidebar() {
         borderRight: "1px solid rgba(0,0,0,0.06)",
       }}
     >
-      {/* Logo */}
       <div className="px-6 pt-8 pb-6 border-b border-black/5">
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 rounded-lg flex items-center justify-center text-white font-bold text-sm" style={{ background: "#f97316" }}>
@@ -86,22 +107,21 @@ export default function Sidebar() {
         </div>
       </div>
 
-      {/* Navigation */}
-      <nav className="flex-1 px-3 py-4 space-y-0.5">
+      <nav className="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto">
         <div className="px-3 pb-2">
           <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider">Dashboard</p>
         </div>
         {navItems.map((item) => (
           <Link key={item.href} href={item.href}
-            className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13.5px] font-medium transition-all duration-150 group
+            className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-medium transition-all duration-150 group
               ${isActive(item.href) ? "bg-orange-500 text-white shadow-sm" : "text-gray-600 hover:bg-black/5 hover:text-gray-900"}`}
           >
-            <span className={`flex-shrink-0 transition-colors ${isActive(item.href) ? "text-white" : "text-gray-400 group-hover:text-gray-600"}`}>
+            <span className={`flex-shrink-0 ${isActive(item.href) ? "text-white" : "text-gray-400 group-hover:text-gray-600"}`}>
               {item.icon}
             </span>
-            <span className="flex-1">{item.label}</span>
+            <span className="flex-1 truncate">{item.label}</span>
             {"badge" in item && item.badge && (
-              <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full
+              <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full flex-shrink-0
                 ${isActive(item.href) ? "bg-white/25 text-white" : "bg-orange-100 text-orange-500"}`}>
                 {item.badge}
               </span>
@@ -110,7 +130,6 @@ export default function Sidebar() {
         ))}
       </nav>
 
-      {/* Footer */}
       <div className="px-6 py-5 border-t border-black/5">
         <div className="text-[11px] text-gray-400">
           <div className="font-medium text-gray-500 mb-0.5">The Architect</div>
