@@ -12,6 +12,13 @@ interface UpdateAgentBody {
   active_agent_ids?: string[];
 }
 
+interface RetellAgentRaw {
+  agent_id?: string;
+  agent_name?: string;
+  voice_id?: string;
+  response_engine?: { llm_id?: string };
+}
+
 export async function POST(request: NextRequest): Promise<NextResponse> {
   let body: UpdateAgentBody;
   try { body = await request.json(); }
@@ -41,30 +48,24 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       updatePayload as Parameters<typeof client.agent.update>[1]
     );
 
-    // When activating, also save to Firestore settings so the whole
-    // system knows which agent is active — no env var needed
     if (body.set_active) {
       try {
         const db = getDb();
-        // Get the agent details to find its LLM ID
-        const agentDetails = await client.agent.retrieve(body.agent_id);
-        const responseEngine = agentDetails.response_engine as { llm_id?: string } | undefined;
-        const llmId = responseEngine?.llm_id ?? "";
-
+        const raw = await client.agent.retrieve(body.agent_id);
+        const agentDetails = raw as unknown as RetellAgentRaw;
+        const llmId = agentDetails.response_engine?.llm_id ?? "";
         await db.collection("settings").doc("active_agent").set({
           agent_id: body.agent_id,
           llm_id: llmId,
-          agent_name: (agentDetails as Record<string, unknown>).agent_name ?? "",
+          agent_name: agentDetails.agent_name ?? "",
           voice_id: agentDetails.voice_id ?? "",
           updated_at: new Date().toISOString(),
         });
-        console.log(`[Settings] Active agent updated to ${body.agent_id}`);
       } catch (fbErr) {
         console.warn("[Settings] Failed to save active agent:", fbErr);
       }
     }
 
-    // Multi-select: activate additional agents
     if (body.active_agent_ids && body.active_agent_ids.length > 0 && webhookBase) {
       await Promise.all(
         body.active_agent_ids.map((id) =>
